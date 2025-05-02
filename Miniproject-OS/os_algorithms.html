@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OS Algorithms</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 40px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #4caf50;
+      margin-bottom: 20px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      background-color: #607d8b;
+    }
+
+    .back-btn:hover {
+      background-color: #455a64;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>OS Algorithms</h1>
+
+    <button onclick="showFCFS()">FCFS Algorithm</button>
+    <button onclick="showSJF()">SJF Algorithm</button>
+    <button onclick="showRoundRobin()">Round Robin Algorithm</button>
+    <button onclick="showBankers()">Banker's Algorithm</button>
+
+    <div id="performanceMetrics"></div>
+
+    <div>
+      <h2>Performance Comparison</h2>
+      <canvas id="performanceChart"></canvas>
+    </div>
+
+    <button class="back-btn" onclick="window.location.href='index.html'">🔙 Back to Home</button>
+  </div>
+
+  <script>
+    let fcfsResults = [];
+    let sjfResults = [];
+    let rrResults = [];
+    let bankersResults = [];
+
+    // Mocking task data
+    const tasks = [
+      { id: 1, arrivalTime: 0, burstTime: 5 },
+      { id: 2, arrivalTime: 1, burstTime: 3 },
+      { id: 3, arrivalTime: 2, burstTime: 8 },
+      { id: 4, arrivalTime: 3, burstTime: 6 }
+    ];
+    const quantum = 4;
+
+    // FCFS (First Come First Serve)
+    function fcfs(tasks) {
+      let startTime = 0;
+      const result = tasks.map(task => {
+        const waitingTime = startTime - task.arrivalTime;
+        const turnaroundTime = waitingTime + task.burstTime;
+        startTime += task.burstTime;
+        return { task, startTime, endTime: startTime, waitingTime, turnaroundTime };
+      });
+      return result;
+    }
+
+    // SJF (Shortest Job First)
+    function sjf(tasks) {
+      tasks.sort((a, b) => a.burstTime - b.burstTime);  // Sort by burst time
+      let startTime = 0;
+      const result = tasks.map(task => {
+        const waitingTime = startTime - task.arrivalTime;
+        const turnaroundTime = waitingTime + task.burstTime;
+        startTime += task.burstTime;
+        return { task, startTime, endTime: startTime, waitingTime, turnaroundTime };
+      });
+      return result;
+    }
+
+    // Round Robin
+    function roundRobin(tasks, quantum) {
+      let startTime = 0;
+      const queue = [...tasks];
+      let remainingBurstTime = [...tasks.map(task => task.burstTime)];
+      const result = [];
+
+      while (queue.length > 0) {
+        let task = queue.shift();
+        let burstTime = remainingBurstTime.shift();
+
+        if (burstTime > quantum) {
+          startTime += quantum;
+          remainingBurstTime.push(burstTime - quantum);
+          queue.push(task);
+        } else {
+          startTime += burstTime;
+          result.push({ task, startTime, endTime: startTime, waitingTime: startTime - task.arrivalTime - task.burstTime, turnaroundTime: startTime - task.arrivalTime });
+        }
+      }
+      return result;
+    }
+
+    // Banker's Algorithm (simple example)
+    function bankersAlgorithm(numProcesses, available, max, allocation) {
+      const need = max.map((row, i) => row.map((x, j) => x - allocation[i][j]));
+      let work = [...available];
+      let finish = Array(numProcesses).fill(false);
+      let safeSequence = [];
+
+      while (safeSequence.length < numProcesses) {
+        let progressMade = false;
+
+        for (let i = 0; i < numProcesses; i++) {
+          if (!finish[i] && need[i].every((x, j) => x <= work[j])) {
+            work = work.map((x, j) => x + allocation[i][j]);
+            finish[i] = true;
+            safeSequence.push(i);
+            progressMade = true;
+            break;
+          }
+        }
+
+        if (!progressMade) {
+          return "System is in an unsafe state!";
+        }
+      }
+
+      return safeSequence;
+    }
+
+    // Function to calculate performance metrics
+    function calculatePerformanceMetrics(results) {
+      let totalWaitingTime = 0;
+      let totalTurnaroundTime = 0;
+
+      results.forEach(result => {
+        totalWaitingTime += result.waitingTime;
+        totalTurnaroundTime += result.turnaroundTime;
+      });
+
+      const avgWaitingTime = totalWaitingTime / results.length;
+      const avgTurnaroundTime = totalTurnaroundTime / results.length;
+
+      return {
+        avgWaitingTime,
+        avgTurnaroundTime
+      };
+    }
+
+    // Show FCFS results
+    function showFCFS() {
+      const result = fcfs(tasks);
+      fcfsResults = result;
+      clearChart();
+      displayResults(result);
+      displayPerformanceMetrics(result, 'FCFS');
+    }
+
+    // Show SJF results
+    function showSJF() {
+      const result = sjf(tasks);
+      sjfResults = result;
+      clearChart();
+      displayResults(result);
+      displayPerformanceMetrics(result, 'SJF');
+    }
+
+    // Show Round Robin results
+    function showRoundRobin() {
+      const result = roundRobin(tasks, quantum);
+      rrResults = result;
+      clearChart();
+      displayResults(result);
+      displayPerformanceMetrics(result, 'Round Robin');
+    }
+
+    // Show Banker's results
+    function showBankers() {
+      const available = [3, 3, 2];  // Example resource availability
+      const max = [[7, 5, 3], [3, 2, 2], [9, 0, 2]];  // Example max resources needed
+      const allocation = [[0, 1, 0], [2, 0, 0], [3, 0, 2]];  // Example current allocation
+      const result = bankersAlgorithm(tasks.length, available, max, allocation);
+      bankersResults = result;
+      clearChart();
+      displayResults(result);
+      displayPerformanceMetrics(result, 'Banker\'s');
+    }
+
+    // Clear the chart before drawing a new one
+    function clearChart() {
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+      if (window.chart) {
+        window.chart.destroy();
+      }
+    }
+
+    // Display results
+    function displayResults(result) {
+      console.log(result); // Log the result of the algorithm
+    }
+
+    // Display performance metrics
+    function displayPerformanceMetrics(results, algorithm) {
+      const { avgWaitingTime, avgTurnaroundTime } = calculatePerformanceMetrics(results);
+
+      const performanceDiv = document.getElementById("performanceMetrics");
+      performanceDiv.innerHTML = ` 
+        <h3>${algorithm} Algorithm</h3>
+        <p>Average Waiting Time: ${avgWaitingTime}</p>
+        <p>Average Turnaround Time: ${avgTurnaroundTime}</p>
+      `;
+      displayPerformanceChart();
+    }
+
+    // Display performance comparison chart
+    function displayPerformanceChart() {
+      const labels = ['FCFS', 'SJF', 'Round Robin', 'Banker\'s'];
+      const waitingTimes = [
+        calculatePerformanceMetrics(fcfsResults).avgWaitingTime,
+        calculatePerformanceMetrics(sjfResults).avgWaitingTime,
+        calculatePerformanceMetrics(rrResults).avgWaitingTime,
+        calculatePerformanceMetrics(bankersResults).avgWaitingTime
+      ];
+      const turnaroundTimes = [
+        calculatePerformanceMetrics(fcfsResults).avgTurnaroundTime,
+        calculatePerformanceMetrics(sjfResults).avgTurnaroundTime,
+        calculatePerformanceMetrics(rrResults).avgTurnaroundTime,
+        calculatePerformanceMetrics(bankersResults).avgTurnaroundTime
+      ];
+
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+      window.chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Average Waiting Time',
+            data: waitingTimes,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          }, {
+            label: 'Average Turnaround Time',
+            data: turnaroundTimes,
+            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

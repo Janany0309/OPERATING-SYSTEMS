@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QR Code Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 40px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #4caf50;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    canvas {
+      display: block;
+      margin: 20px auto;
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      background-color: #607d8b;
+    }
+
+    .back-btn:hover {
+      background-color: #455a64;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>QR Code Generator</h1>
+
+    <input type="text" id="productInput" placeholder="Enter product data (e.g., ID, name, date)">
+    <button onclick="generateQR()">Generate QR Code</button>
+
+    <canvas id="qrCanvas"></canvas>
+
+    <button class="back-btn" onclick="window.location.href='index.html'">🔙 Back to Home</button>
+  </div>
+
+  <script>
+    function generateQR() {
+      const data = document.getElementById("productInput").value;
+      const canvas = document.getElementById("qrCanvas");
+
+      if (data.trim() === "") {
+        alert("Please enter product data.");
+        return;
+      }
+
+      QRCode.toCanvas(canvas, data, function (error) {
+        if (error) {
+          console.error(error);
+          alert("Failed to generate QR Code.");
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Performance Monitoring</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .container { width: 80%; margin: auto; padding: 20px; }
+    canvas { margin: 20px 0; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Performance Monitoring</h1>
+
+  <!-- CPU Scheduling Performance Graph -->
+  <h2>CPU Scheduling Performance</h2>
+  <canvas id="cpuSchedulingChart" width="400" height="200"></canvas>
+
+  <!-- Banker's Algorithm Performance Graph -->
+  <h2>Banker's Algorithm Performance</h2>
+  <canvas id="bankersAlgorithmChart" width="400" height="200"></canvas>
+
+  <!-- Example Buttons to Trigger Graph Plotting -->
+  <button onclick="processTasksFCFS(); plotCPUSchedulingPerformance();">Process Tasks (FCFS)</button>
+  <button onclick="requestResources('Manufacturer1'); plotBankersAlgorithmPerformance();">Request Resources</button>
+
+  <button onclick="window.location.href='index.html'">Back to Home</button>
+</div>
+
+<script>
+  // Sample data for CPU Scheduling
+  const taskExecutionTimes = [
+    { taskId: "Task 1", timeTaken: 3000 },
+    { taskId: "Task 2", timeTaken: 5000 },
+    { taskId: "Task 3", timeTaken: 2000 }
+  ];
+
+  // Sample data for Banker's Algorithm
+  const resourceAllocations = [
+    { taskId: "Manufacturer1", requested: 1, allocated: 1 },
+    { taskId: "Customer1", requested: 1, allocated: 0 }
+  ];
+
+  function plotCPUSchedulingPerformance() {
+    const taskNames = taskExecutionTimes.map(task => task.taskId);
+    const times = taskExecutionTimes.map(task => task.timeTaken);
+
+    const ctx = document.getElementById('cpuSchedulingChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: taskNames,
+        datasets: [{
+          label: 'Task Execution Time (ms)',
+          data: times,
+          backgroundColor: '#4caf50',
+          borderColor: '#388e3c',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: { y: { beginAtZero: true } },
+        responsive: true,
+        plugins: { legend: { position: 'top' } }
+      }
+    });
+  }
+
+  function plotBankersAlgorithmPerformance() {
+    const taskIds = resourceAllocations.map(task => task.taskId);
+    const allocatedResources = resourceAllocations.map(task => task.allocated);
+    const requestedResources = resourceAllocations.map(task => task.requested);
+
+    const ctx = document.getElementById('bankersAlgorithmChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: taskIds,
+        datasets: [
+          { label: 'Allocated Resources', data: allocatedResources, borderColor: '#4caf50', backgroundColor: 'rgba(76, 175, 80, 0.2)', fill: true },
+          { label: 'Requested Resources', data: requestedResources, borderColor: '#ff9800', backgroundColor: 'rgba(255, 152, 0, 0.2)', fill: true }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } },
+        plugins: { legend: { position: 'top' } }
+      }
+    });
+  }
+
+  function processTasksFCFS() {
+    // Simulate task processing for FCFS (First-Come, First-Served)
+  }
+
+  function requestResources(taskId) {
+    // Simulate resource request for Banker's Algorithm
+  }
+</script>
+
+</body>
+</html>

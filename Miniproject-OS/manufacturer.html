@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manufacturer Page</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 40px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #4caf50;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      background-color: #607d8b;
+    }
+
+    .back-btn:hover {
+      background-color: #455a64;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Manufacturer Page</h1>
+
+    <button onclick="connectWallet()">Connect Wallet</button>
+    <p id="walletAddress">Wallet not connected</p>
+
+    <input type="text" id="productName" placeholder="Enter Product Name">
+    <input type="text" id="productID" placeholder="Enter Product ID">
+    
+    <button onclick="window.location.href='qr.html'">Go to QR Generator</button>
+    <button onclick="window.location.href='performance.html'">Go to Performance Monitoring</button>
+    <button onclick="window.location.href='os_algorithms.html'">Try OS Algorithms</button>
+
+    <button class="back-btn" onclick="window.location.href='index.html'">🔙 Back to Home</button>
+  </div>
+
+  <script>
+    let contract;
+    const contractAddress = "0xd9145CCE52D386f254917e481eB44e9943F39138"; // Replace with your contract address
+
+    const abi = [
+      {
+        "inputs": [],
+        "name": "greet",
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "stateMutability": "payable",
+        "type": "constructor"
+      }
+    ];
+
+    // Connect wallet function
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+          document.getElementById("walletAddress").innerText = "Connected: " + accounts[0];
+        } catch (err) {
+          alert("Failed to connect wallet.");
+        }
+      } else {
+        alert("MetaMask not found. Please install MetaMask.");
+      }
+    }
+
+    // Load the smart contract
+    async function loadContract() {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      contract = new ethers.Contract(contractAddress, abi, signer);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fake Product Detection</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 40px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #3f51b5;
+      margin-bottom: 30px;
+    }
+
+    button {
+      background-color: #3f51b5;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px 0;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #303f9f;
+    }
+
+    p {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .role-selection {
+      text-align: center;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Fake Product Detection</h1>
+
+    <div class="role-selection">
+      <h2>Select Your Role</h2>
+      <button onclick="window.location.href='manufacturer.html'">I’m a Manufacturer</button>
+      <button onclick="window.location.href='customer.html'">I’m a Customer</button>
+    </div>
+
+    <div>
+      <button onclick="connectWallet()">Connect Wallet</button>
+      <p id="walletAddress">Wallet not connected</p>
+
+      <button onclick="getGreet()">Get Greet</button>
+      <p id="greetOutput"></p>
+
+      <button onclick="window.location.href='qr.html'">Go to QR Generator</button>
+    </div>
+  </div>
+
+  <script>
+    let contract;
+    const contractAddress = "0xd9145CCE52D386f254917e481eB44e9943F39138"; // Your deployed contract address
+
+    const abi = [
+      {
+        "inputs": [],
+        "name": "greet",
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "stateMutability": "payable",
+        "type": "constructor"
+      }
+    ];
+
+    // Check for MetaMask on page load
+    window.onload = function() {
+      if (!window.ethereum) {
+        alert("MetaMask not found. Please install MetaMask.");
+      }
+    };
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+          document.getElementById("walletAddress").innerText = "Connected: " + accounts[0];
+        } catch (err) {
+          alert("Failed to connect wallet.");
+        }
+      } else {
+        alert("MetaMask not found. Please install MetaMask.");
+      }
+    }
+
+    async function loadContract() {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      contract = new ethers.Contract(contractAddress, abi, signer);
+    }
+
+    async function getGreet() {
+      try {
+        if (!contract) await loadContract();
+        const message = await contract.greet();
+        document.getElementById("greetOutput").innerText = message;
+      } catch (err) {
+        console.error(err);
+        alert("Error fetching greet message.");
+      }
+    }
+  </script>
+
+</body>
+</html>
